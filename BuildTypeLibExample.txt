@@ -1,0 +1,232 @@
+' ========================================================================================
+' Demonstrates how to build a type library programatically.
+' Based on the C program TypeBld, written by Microsoft Product Support Services, Windows
+' Developer Support (c) Copyright Microsoft Corp. 1995.
+' ========================================================================================
+
+' CSED_PBWIN
+#COMPILE EXE
+#DIM ALL
+#INCLUDE ONCE "OleAuto.inc"
+
+$LIBID_Hello = GUID$("{2F6CA420-C641-101A-B826-00DD01103DE1}")
+$CLSID_Hello = GUID$("{2F6CA421-C641-101A-B826-00DD01103DE1}")
+$IID_IHello = GUID$("{2F6CA422-C641-101A-B826-00DD01103DE1}")
+$IID_DHello = GUID$("{2F6CA423-C641-101A-B826-00DD01103DE1}")
+
+' ========================================================================================
+' Create the type infos
+' ========================================================================================
+FUNCTION CreateTypeInfos (BYVAL pctlib AS ICreateTypeLib) AS LONG
+
+   LOCAL hr AS LONG
+
+   LOCAL wszText AS WSTRINGZ * 260            ' // General purpose variable
+   LOCAL ptlibStdOle AS ITypeLib              ' // ITypeLib reference pointer
+   LOCAL ptinfoIUnknown AS ITypeInfo          ' // ITypeInfo reference pointer
+   LOCAL ptinfoIDispatch AS ITypeInfo         ' // ITypeInfo reference pointer
+   LOCAL pctinfo AS ICreateTypeInfo           ' // ICreateTypeInfo reference pointer
+   LOCAL hreftype AS DWORD                    ' // Reference type
+
+   wszText = "stdole32.tlb"
+   hr = LoadTypeLib(wszText, ptlibStdOle)
+   hr = ptlibStdOle.GetTypeInfoOfGuid($IID_IUNKNOWN, ptinfoIUnknown)
+   hr = ptlibStdOle.GetTypeInfoOfGuid($IID_IDISPATCH, ptinfoIDispatch)
+   ptlibStdOle = NOTHING
+
+   wszText = "IHello"
+   hr = pctlib.CreateTypeInfo(wszText, %TKIND_INTERFACE, pctinfo)
+   hr = pctinfo.SetGuid($IID_IHello)
+   wszText = "Hello interface"
+   hr = pctinfo.SetDocString(wszText)
+
+   ' Save typeinfo of IHello for others who may refer to it.
+   LOCAL ptinfoIHello AS ITypeInfo
+   ptinfoIHello = pctinfo
+
+   ' Output base interface of IHello (IUnknown)
+   hr = pctinfo.AddRefTypeInfo(ptinfoIUnknown, hreftype)
+   hr = pctinfo.AddImplType(0, hreftype)
+
+   LOCAL tfuncdesc AS FUNCDESC
+
+   ' Output [propget, id(0)] BSTR HelloMessage(void)
+   DIM rgszFuncArgNamesHM(0) AS WSTRING
+   rgszFuncArgNamesHM(0) = "HelloMessage"
+
+   tfuncdesc.memid = 0
+   tfuncdesc.lprgscode = %NULL
+   tfuncdesc.lprgelemdescParam = %NULL
+   tfuncdesc.funckind = %FUNC_PUREVIRTUAL
+   tfuncdesc.invkind = %INVOKE_PROPERTYGET
+   tfuncdesc.callconv = %CC_STDCALL
+   tfuncdesc.cParams = 0
+   tfuncdesc.cParamsOpt = 0
+   tfuncdesc.oVft = 0         ' This will be assigned by ICreateTypeInfo.LayOut
+   tfuncdesc.cScodes = 0
+   tfuncdesc.elemdescFunc.tdesc.vt = %VT_BSTR
+   tfuncdesc.elemdescFunc.idldesc.dwReserved = %NULL
+   tfuncdesc.elemdescFunc.idldesc.wIDLFlags  = %IDLFLAG_NONE
+   tfuncdesc.wFuncFlags = 0
+
+   hr = pctinfo.AddFuncDesc(0, tfuncdesc)
+   hr = pctinfo.SetFuncAndParamNames(0, rgszFuncArgNamesHM(0), 1)
+
+   ' Output [propput, id(0)] void HelloMessage([in] BSTR Message)
+   LOCAL telemdesc AS ELEMDESC
+
+   telemdesc.tdesc.vt = %VT_BSTR
+   telemdesc.idldesc.dwReserved = %NULL
+   telemdesc.idldesc.wIDLFlags  = %IDLFLAG_FIN
+
+   tfuncdesc.memid = 0
+   tfuncdesc.lprgscode = %NULL
+   tfuncdesc.lprgelemdescParam = VARPTR(telemdesc)
+   tfuncdesc.funckind = %FUNC_PUREVIRTUAL
+   tfuncdesc.invkind = %INVOKE_PROPERTYPUT
+   tfuncdesc.callconv = %CC_STDCALL
+   tfuncdesc.cParams = 1
+   tfuncdesc.cParamsOpt = 0
+   tfuncdesc.oVft = 0
+   tfuncdesc.cScodes = 0
+   tfuncdesc.elemdescFunc.tdesc.vt = %VT_VOID
+   tfuncdesc.elemdescFunc.idldesc.dwReserved = %NULL
+   tfuncdesc.elemdescFunc.idldesc.wIDLFlags = %IDLFLAG_NONE
+
+   hr = pctinfo.AddFuncDesc(1, tfuncdesc)
+   hr = pctinfo.SetFuncAndParamNames(1, rgszFuncArgNamesHM(0), 1)
+
+   ' // pctinfo->SetFuncAndParamNames is supposed to be called
+   ' // only once per property. However unless it is called for both
+   ' // the propput and propget, an exception will occur in 32 bit when
+   ' // ICreateTypeInfo::LayOut is called.
+   ' // This problem doesn't exist in 16 bit.
+
+   ' // [id(1)] void SayHello(void)
+   DIM rgszFuncArgNamesSH(0) AS WSTRING
+   rgszFuncArgNamesSH(0) = "SayHello"
+
+   tfuncdesc.memid = 1
+   tfuncdesc.lprgscode = %NULL
+   tfuncdesc.lprgelemdescParam = %NULL
+   tfuncdesc.funckind = %FUNC_PUREVIRTUAL
+   tfuncdesc.invkind = %INVOKE_FUNC
+   tfuncdesc.callconv = %CC_STDCALL
+   tfuncdesc.cParams = 0
+   tfuncdesc.cParamsOpt = 0
+   tfuncdesc.oVft = 0
+   tfuncdesc.cScodes = 0
+   tfuncdesc.elemdescFunc.tdesc.vt = %VT_VOID
+   tfuncdesc.elemdescFunc.idldesc.dwReserved = %NULL
+   tfuncdesc.elemdescFunc.idldesc.wIDLFlags  = %IDLFLAG_NONE
+   tfuncdesc.wFuncFlags = 0
+
+   hr = pctinfo.AddFuncDesc(2, tfuncdesc)
+   hr = pctinfo.SetFuncAndParamNames(2, rgszFuncArgNamesSH(0), 1)
+
+   hr = pctinfo.LayOut
+   pctinfo = NOTHING
+
+'    /*
+'    Generate the typeinfo for the following dispinterface
+
+'    [
+'      uuid(2F6CA423-C641-101A-B826-00DD01103DE1),        // IID_DHello
+'      helpstring("Hello Dispinterface")
+'    ]
+'    dispinterface DHello
+'    {
+'      interface IHello;
+'    }
+'    */
+
+   wszText = "DHello"
+   hr = pctlib.CreateTypeInfo(wszText, %TKIND_DISPATCH, pctinfo)
+   hr = pctinfo.SetGuid($IID_DHello)
+   wszText = "Hello Dispinterface"
+   hr = pctinfo.SetDocString(wszText)
+
+   ' Save typeinfo of IHello for others who may refer to it.
+   LOCAL ptinfoDHello AS ITypeInfo
+   ptinfoDHello = pctinfo
+
+   ' Output base interface of DHello (IDispatch)
+   hr = pctinfo.AddRefTypeInfo(ptinfoIDispatch, hreftype)
+   hr = pctinfo.AddImplType(0, hreftype)
+
+   ' Specify interface IHello that is wrapped by DHello
+   hr = pctinfo.AddRefTypeInfo(ptinfoIHello, hreftype)
+   hr = pctinfo.AddImplType(1, hreftype)
+
+   hr = pctinfo.LayOut
+   pctinfo = NOTHING
+
+
+'    /*
+'    Generate the typeinfo for the following coclass
+
+'    [
+'       uuid(2F6CA421-C641-101A-B826-00DD01103DE1),       // CLSID_Hello
+'       helpstring("Hello Class")
+'    ]
+'    coclass Hello
+'    {
+'        dispinterface DHello;
+'        interface IHello;
+'    }
+'   */
+
+   wszText = "Hello"
+   hr = pctlib.CreateTypeInfo(wszText, %TKIND_COCLASS, pctinfo)
+
+   hr = pctinfo.SetGuid($CLSID_Hello)
+   wszText = "Hello Class"
+   hr = pctinfo.SetDocString(wszText)
+
+   ' List DHello & IHello in the coclass
+   hr = pctinfo.AddRefTypeInfo(ptinfoDHello, hreftype)
+   hr = pctinfo.AddImplType(0, hreftype)
+   hr = pctinfo.AddRefTypeInfo(ptinfoIHello, hreftype)
+   hr = pctinfo.AddImplType(1, hreftype)
+
+   hr = pctinfo.LayOut
+   pctinfo = NOTHING
+
+   ptinfoIUnknown = NOTHING
+   ptinfoIDispatch = NOTHING
+   ptinfoIHello = NOTHING
+   ptinfoDHello = NOTHING
+
+   FUNCTION = %NOERROR
+
+END FUNCTION
+' ========================================================================================
+
+' ========================================================================================
+' Main
+' ========================================================================================
+FUNCTION PBMAIN () AS LONG
+
+
+   LOCAL hr AS LONG
+   LOCAL wszText AS WSTRINGZ * 260
+   LOCAL pctlib AS ICreateTypeLib
+
+   wszText = "hello.tlb"
+   hr = CreateTypeLib(%SYS_WIN32, wszText, pctlib)
+   IF hr <> %S_OK THEN EXIT FUNCTION
+   hr = pctlib.SetLcid(&H409)
+   hr = pctlib.SetVersion(1, 0)
+   wszText = "Hello"
+   hr = pctlib.SetName(wszText)
+   hr = pctlib.SetGUID($LIBID_Hello)
+   wszText = "Hello 1.0 Type Library"
+   hr = pctlib.SetDocString(wszText)
+   hr = CreateTypeInfos(pctlib)
+   IF hr = %NOERROR THEN hr = pctlib.SaveAllChanges
+   pctlib = NOTHING
+
+   IF hr = %S_OK THEN MSGBOX "Done" ELSE MSGBOX "Error"
+
+END FUNCTION
+' ========================================================================================

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DotNetCoreTypeLibGenerator.Tests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
