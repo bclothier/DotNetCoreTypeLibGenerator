@@ -16,13 +16,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CircularReferencingTypes\CircularReferencingTypes.csproj" />
-    <ProjectReference Include="..\Constants\Constants.csproj" />
-    <ProjectReference Include="..\DotNetCoreTypeLibGenerator.BuildTask\DotNetCoreTypeLibGenerator.BuildTask.csproj" />
+    <ProjectReference Include="..\BuildTask\DotNetCoreTypeLibGenerator.BuildTask.csproj" />
     <ProjectReference Include="..\DotNetCoreTypeLibGenerator\DotNetCoreTypeLibGenerator.csproj" />
-    <ProjectReference Include="..\EmptyTypeLib\EmptyTypeLib.csproj" />
-    <ProjectReference Include="..\SimpleInterface\SimpleInterface.csproj" />
-    <ProjectReference Include="..\Structs\Structs.csproj" />
+    <ProjectReference Include="..\TestAssemblies\CircularReferencingTypes\CircularReferencingTypes.csproj" />
+    <ProjectReference Include="..\TestAssemblies\Constants\Constants.csproj" />
+    <ProjectReference Include="..\TestAssemblies\EmptyTypeLib\EmptyTypeLib.csproj" />
+    <ProjectReference Include="..\TestAssemblies\SimpleInterface\SimpleInterface.csproj" />
+    <ProjectReference Include="..\TestAssemblies\Structs\Structs.csproj" />
   </ItemGroup>
 
 </Project>

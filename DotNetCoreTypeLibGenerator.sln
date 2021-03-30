@@ -5,25 +5,25 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCoreTypeLibGenerator", "DotNetCoreTypeLibGenerator\DotNetCoreTypeLibGenerator.csproj", "{A91D0CE7-5165-4B7A-841E-DDF6C01107C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCoreTypeLibGenerator.Tests", "DotNetCoreTypeLibGenerator.Tests\DotNetCoreTypeLibGenerator.Tests.csproj", "{B5BBD093-29E9-4AA5-AF6A-ED51A0E17886}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCoreTypeLibGenerator.Tests", "Tests\DotNetCoreTypeLibGenerator.Tests.csproj", "{B5BBD093-29E9-4AA5-AF6A-ED51A0E17886}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestAssemblies", "TestAssemblies", "{2594271B-3933-495F-8EDD-08FC058844C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmptyTypeLib", "EmptyTypeLib\EmptyTypeLib.csproj", "{71D0826F-2983-4895-92F4-6F57764D269E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmptyTypeLib", "TestAssemblies\EmptyTypeLib\EmptyTypeLib.csproj", "{71D0826F-2983-4895-92F4-6F57764D269E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCoreTypeLibGenerator.BuildTask", "DotNetCoreTypeLibGenerator.BuildTask\DotNetCoreTypeLibGenerator.BuildTask.csproj", "{C981F004-2C2F-4F65-AD0E-2B4E9520A109}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetCoreTypeLibGenerator.BuildTask", "BuildTask\DotNetCoreTypeLibGenerator.BuildTask.csproj", "{C981F004-2C2F-4F65-AD0E-2B4E9520A109}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Constants", "Constants\Constants.csproj", "{115A2695-598A-44F4-9321-6D49A719078A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Constants", "TestAssemblies\Constants\Constants.csproj", "{115A2695-598A-44F4-9321-6D49A719078A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Structs", "Structs\Structs.csproj", "{69B10B59-F2FC-4C6D-8D64-D3F1B7ADD938}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Structs", "TestAssemblies\Structs\Structs.csproj", "{69B10B59-F2FC-4C6D-8D64-D3F1B7ADD938}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CircularReferencingTypes", "CircularReferencingTypes\CircularReferencingTypes.csproj", "{38081E76-B0E8-4385-9B89-771044F91D36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CircularReferencingTypes", "TestAssemblies\CircularReferencingTypes\CircularReferencingTypes.csproj", "{38081E76-B0E8-4385-9B89-771044F91D36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleInterface", "SimpleInterface\SimpleInterface.csproj", "{80516788-AE3D-48D6-A013-423D6861F84A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleInterface", "TestAssemblies\SimpleInterface\SimpleInterface.csproj", "{80516788-AE3D-48D6-A013-423D6861F84A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "References", "References", "{699A25A4-11C2-4580-A474-701E2E7A8CC0}"
 	ProjectSection(SolutionItems) = preProject
-		BuildTypeLibExample.txt = BuildTypeLibExample.txt
+		References\BuildTypeLibExample.txt = References\BuildTypeLibExample.txt
 	EndProjectSection
 EndProject
 Global
