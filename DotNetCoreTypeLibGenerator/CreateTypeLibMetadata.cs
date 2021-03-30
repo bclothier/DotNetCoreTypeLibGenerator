@@ -64,6 +64,12 @@ namespace DotNetCoreTypeLibGenerator
                 Flags = 0
             };
 
+            CreateTypeLib.SetName(Attributes.Name);
+            CreateTypeLib.SetGuid(guid);
+            CreateTypeLib.SetVersion(Attributes.MajorVersion, Attributes.MinorVersion);
+            CreateTypeLib.SetLcid(Attributes.LCID);
+            CreateTypeLib.SetLibFlags((uint)Attributes.Flags);
+
             _typeInfoMetaData = new Dictionary<Guid, CreateTypeInfoMetadata>();
             _referencedTypeLibProvider = referencedTypeLibProvider;
         }

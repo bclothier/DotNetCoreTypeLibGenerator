@@ -30,14 +30,14 @@ namespace DotNetCoreTypeLibGenerator
     {
         private readonly ITypeLibGenerationEventSink _sink;
         private readonly IReferencedTypeLibrariesProvider _referencedTypeLibProvider;
-        private MemberIdDispenser _memIdDispenser = new MemberIdDispenser();
+        private readonly MemberIdDispenser _memIdDispenser = new MemberIdDispenser();
 
         public TYPEKIND TypeKind { get; }
         public Guid Guid { get; }
         public Type Type { get; }
         public ICreateTypeInfo2 CreateTypeInfo { get; }
         public ITypeInfo2 TypeInfo => (ITypeInfo2)CreateTypeInfo;
-        private Dictionary<int, CreateTypeInfoMemberMetadata> _memberMetadata;
+        private readonly Dictionary<int, CreateTypeInfoMemberMetadata> _memberMetadata;
         public IReadOnlyDictionary<int, CreateTypeInfoMemberMetadata> MemberMetaData => _memberMetadata;
         public CreateTypeInfoAttributes Attributes { get; }
 
@@ -72,6 +72,7 @@ namespace DotNetCoreTypeLibGenerator
             // TODO: Handle both presence / absence of the PreserveSig attribute. Currently, the code
             // TODO: acts as if the attribute was present but in reality, we should default to transforming
             // TODO: the signature returning a HRESULT and taking the return parameter as the final parameter.
+            var preserveSig = AttributeHelper.HasPreserveSig(methodInfo);
             var invKind = InferInvKind(methodInfo);
             var funcName = methodInfo.Name;
             if(invKind!= INVOKEKIND.INVOKE_FUNC)
@@ -94,30 +95,68 @@ namespace DotNetCoreTypeLibGenerator
             var optParameters = parameters.Where(x => x.IsOptional);
             var retValParameter = parameters.FirstOrDefault(x => x.IsRetval) ?? methodInfo.ReturnParameter;
 
-            var cParams = reqParameters.Count();
-            var cParamsOpt = optParameters.Count();
+            var cParams = 0;
+            var cParamsOpt = 0;
+            if (invKind != INVOKEKIND.INVOKE_PROPERTYGET)
+            {
+                cParams = reqParameters.Count();
+                cParamsOpt = optParameters.Count();
+            }
+            else
+            {
+                cParams = 1;
+            }
             var elementSize = Marshal.SizeOf<ELEMDESC>();
-            
+            var totalCount = cParams + cParamsOpt;
+
             // We want to free all unmanaged memory allocations at the end of the procedure because
             // there could be multiple memory allocations for parameters and we cannot deallocate 
             // until we are done with all the parameters description.
             using var handles = new DisposableList<SafeHandle>();
 
-            UnmanagedMemory.UsingCoTaskMem(elementSize * (cParams + cParamsOpt), ptr => {
+            UnmanagedMemory.UsingCoTaskMem(elementSize * totalCount, firstElementPtr => {
+                var iteratorPtr = firstElementPtr;
                 void ProcessParameter(ParameterInfo p)
                 {
-                    var iteratorPtr = ptr;
-
                     // TODO: Handle indexed parameters -- C# does not support it but VB.NET does and therefore
                     // TODO: we would need the parameters' name added but not the retVal which must be anonymous
-                    if (invKind != INVOKEKIND.INVOKE_PROPERTYPUT && invKind != INVOKEKIND.INVOKE_PROPERTYPUTREF)
+
+                    var paramFlags = PARAMFLAG.PARAMFLAG_NONE;
+                    object defaultValue = null;
+                    var vt = VarEnum.VT_EMPTY;
+                    if (invKind == INVOKEKIND.INVOKE_FUNC)
                     {
                         names.Add(p.Name);
+                        paramFlags = CalculateParameterFlags(p, out defaultValue);
+                    }
+                    else if(invKind == INVOKEKIND.INVOKE_PROPERTYGET)
+                    {
+                        names.Add(p.Name);
+                        paramFlags = PARAMFLAG.PARAMFLAG_FOUT | PARAMFLAG.PARAMFLAG_FRETVAL;
+                        vt = VarEnum.VT_PTR;
+                    }
+                    else
+                    {
+                        paramFlags = PARAMFLAG.PARAMFLAG_FIN;
                     }
                     var elemDescParam = new ELEMDESC();
-                    var paramFlags = CalculateParameterFlags(p, out var defaultValue);
 
-                    elemDescParam.tdesc.vt = (short)p.ParameterType.GetVarEnum();
+                    if(vt==VarEnum.VT_PTR)
+                    {
+                        elemDescParam.tdesc.vt = (short)vt;
+                        var refTypeDesc = new TYPEDESC()
+                        {
+                            vt = (short)p.ParameterType.GetVarEnum()
+                        };
+                        var handle = refTypeDesc.GetHandle();
+                        handles.Add(handle);
+                        elemDescParam.tdesc.lpValue = handle.DangerousGetHandle();
+                        elemDescParam.tdesc.vt = (short)vt;
+                    }
+                    else
+                    {
+                        elemDescParam.tdesc.vt = (short)p.ParameterType.GetVarEnum();
+                    }
                     elemDescParam.desc.paramdesc.wParamFlags = paramFlags;
                     if (defaultValue != null)
                     {
@@ -146,7 +185,18 @@ namespace DotNetCoreTypeLibGenerator
                 var elemDescReturn = new ELEMDESC();
                 if (retValParameter != null)
                 {
-                    elemDescReturn.tdesc.vt = (short)retValParameter.ParameterType.GetVarEnum();
+                    if (preserveSig)
+                    {
+                        elemDescReturn.tdesc.vt = (short)retValParameter.ParameterType.GetVarEnum();
+                    }
+                    else
+                    {
+                        if (invKind == INVOKEKIND.INVOKE_PROPERTYGET)
+                        {
+                            ProcessParameter(retValParameter);
+                        }
+                        elemDescReturn.tdesc.vt = (short)VarEnum.VT_HRESULT;
+                    }
                 }
 
                 // See:
@@ -155,7 +205,7 @@ namespace DotNetCoreTypeLibGenerator
                 {
                     memid = member.MemberId,
                     cScodes = 0,
-                    lprgelemdescParam = ptr,
+                    lprgelemdescParam = firstElementPtr,
                     funckind = FUNCKIND.FUNC_PUREVIRTUAL,
                     invkind = invKind,
                     // Automation assumes STDCALL calling conventions so that should be the only convention we'll use

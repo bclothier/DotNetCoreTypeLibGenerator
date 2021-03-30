@@ -61,6 +61,11 @@ namespace DotNetCoreTypeLibGenerator.Helpers
             return GetFirstOrDefaultAttribute<DefaultParameterValueAttribute>(source)?.Value;
         }
 
+        public static bool HasPreserveSig(ICustomAttributeProvider source)
+        {
+            return GetFirstOrDefaultAttribute<PreserveSigAttribute>(source) != null;
+        }
+
         private static T GetFirstOrDefaultAttribute<T>(ICustomAttributeProvider source) where T : Attribute
         {
             var attributes = source.GetCustomAttributes(typeof(T), false);

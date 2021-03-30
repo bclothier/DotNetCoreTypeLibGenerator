@@ -4,12 +4,12 @@ namespace SimpleInterface
 {
     [
         ComVisible(true),
-        Guid("EEBD79BC-64CE-4BE7-8750-16C9C94A17D8"),
+        Guid("EEBD79BC-64CE-4BE7-8750-16C9C94A17D9"),
         InterfaceType(ComInterfaceType.InterfaceIsIUnknown)
     ]
-    public interface IUnknowable
+    public interface IUnknowablePreserved
     {
-        int UnknowableNumber { get; set; }
+        [PreserveSig]
         double DoUnknownThings();
     }
 }
